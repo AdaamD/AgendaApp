@@ -1,0 +1,11 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Image d'arrière-plan -->
+    <item android:drawable="@drawable/dune_back"/>
+
+    <!-- Couleur semi-transparente -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#90000000"/> <!-- #80 pour l'opacité (50%) et #000000 pour le noir -->
+        </shape>
+    </item>
+</layer-list>
