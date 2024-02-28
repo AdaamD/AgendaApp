@@ -23,7 +23,6 @@ public class AgendaActivity extends AppCompatActivity {
     ArrayAdapter<String> adapter;
     EditText addEventEditText;
     Button addButton;
-    long selectedDateInMillis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,7 @@ public class AgendaActivity extends AppCompatActivity {
             // Formater la date sélectionnée
             Calendar selectedDate = Calendar.getInstance();
             selectedDate.set(year, month, dayOfMonth);
-            selectedDateInMillis = selectedDate.getTimeInMillis();
+            long selectedDateInMillis = getStartOfDayInMillis(selectedDate.getTimeInMillis());
 
             // Rafraîchir la liste des événements pour la date sélectionnée
             refreshEventsForSelectedDate(selectedDateInMillis);
@@ -52,6 +51,7 @@ public class AgendaActivity extends AppCompatActivity {
             String event = addEventEditText.getText().toString();
             if (!event.isEmpty()) {
                 // Ajouter l'événement à la liste des événements associés à la date sélectionnée
+                long selectedDateInMillis = getStartOfDayInMillis(cal.getDate());
                 addEvent(selectedDateInMillis, event);
 
                 // Rafraîchir la liste des événements pour afficher tous les événements associés à cette date
@@ -91,5 +91,16 @@ public class AgendaActivity extends AppCompatActivity {
             // Aucun événement pour cette date, afficher un message
             Toast.makeText(AgendaActivity.this, "Aucun événement pour cette date", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Méthode pour obtenir le début de la journée en millisecondes
+    private long getStartOfDayInMillis(long millis) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(millis);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
     }
 }
