@@ -10,19 +10,22 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class AgendaActivity extends AppCompatActivity {
     CalendarView cal;
     ListView listEvents;
-    Map<Long, List<String>> events = new HashMap<>();
+    Map<String, List<String>> events = new HashMap<>();
     ArrayAdapter<String> adapter;
     EditText addEventEditText;
     Button addButton;
+    String selectedDate; // Variable pour stocker la date sélectionnée dans le CalendarView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,27 +40,25 @@ public class AgendaActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         listEvents.setAdapter(adapter);
 
+        // Ajoutez un écouteur de changement de date au CalendarView
         cal.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            // Formater la date sélectionnée
-            Calendar selectedDate = Calendar.getInstance();
-            selectedDate.set(year, month, dayOfMonth);
-            long selectedDateInMillis = getStartOfDayInMillis(selectedDate.getTimeInMillis());
+            // Formatez la date sélectionnée au format "jour-mois-année"
+            selectedDate = formatDate(year, month, dayOfMonth);
 
-            // Rafraîchir la liste des événements pour la date sélectionnée
-            refreshEventsForSelectedDate(selectedDateInMillis);
+            // Rafraîchissez la liste des événements pour la date sélectionnée
+            refreshEventsForSelectedDate(selectedDate);
         });
 
         addButton.setOnClickListener(v -> {
             String event = addEventEditText.getText().toString();
             if (!event.isEmpty()) {
-                // Ajouter l'événement à la liste des événements associés à la date sélectionnée
-                long selectedDateInMillis = getStartOfDayInMillis(cal.getDate());
-                addEvent(selectedDateInMillis, event);
+                // Ajoutez l'événement à la liste des événements associés à la date sélectionnée
+                addEvent(selectedDate, event);
 
-                // Rafraîchir la liste des événements pour afficher tous les événements associés à cette date
-                refreshEventsForSelectedDate(selectedDateInMillis);
+                // Rafraîchissez la liste des événements pour afficher tous les événements associés à cette date
+                refreshEventsForSelectedDate(selectedDate);
 
-                // Effacer le champ de saisie
+                // Effacez le champ de saisie
                 addEventEditText.setText("");
 
                 Toast.makeText(AgendaActivity.this, "Événement ajouté avec succès !", Toast.LENGTH_SHORT).show();
@@ -66,41 +67,38 @@ public class AgendaActivity extends AppCompatActivity {
     }
 
     // Méthode pour ajouter un événement pour une date spécifique
-    private void addEvent(long dateInMillis, String event) {
-        // Vérifier si des événements existent déjà pour cette date
-        List<String> existingEvents = events.get(dateInMillis);
+    private void addEvent(String date, String event) {
+        // Vérifiez si des événements existent déjà pour cette date
+        List<String> existingEvents = events.get(date);
         if (existingEvents == null) {
-            // Aucun événement pour cette date, créer une nouvelle liste d'événements
+            // Aucun événement pour cette date, créez une nouvelle liste d'événements
             existingEvents = new ArrayList<>();
-            events.put(dateInMillis, existingEvents);
+            events.put(date, existingEvents);
         }
 
-        // Ajouter l'événement à la liste
+        // Ajoutez l'événement à la liste
         existingEvents.add(event);
     }
 
     // Méthode pour rafraîchir les événements pour la date sélectionnée
-    private void refreshEventsForSelectedDate(long dateInMillis) {
-        // Récupérer les événements associés à cette date
-        List<String> eventsForDate = events.get(dateInMillis);
+    private void refreshEventsForSelectedDate(String selectedDate) {
+        // Récupérez les événements associés à cette date
+        List<String> eventsForDate = events.get(selectedDate);
         adapter.clear();
         if (eventsForDate != null && !eventsForDate.isEmpty()) {
-            // Mettre à jour l'adaptateur de la liste pour afficher les événements
+            // Mettez à jour l'adaptateur de la liste pour afficher les événements
             adapter.addAll(eventsForDate);
         } else {
-            // Aucun événement pour cette date, afficher un message
+            // Aucun événement pour cette date, affichez un message
             Toast.makeText(AgendaActivity.this, "Aucun événement pour cette date", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // Méthode pour obtenir le début de la journée en millisecondes
-    private long getStartOfDayInMillis(long millis) {
+    // Méthode pour formater une date au format "jour-mois-année"
+    private String formatDate(int year, int month, int dayOfMonth) {
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(millis);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTimeInMillis();
+        calendar.set(year, month, dayOfMonth);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        return dateFormat.format(calendar.getTime());
     }
 }
